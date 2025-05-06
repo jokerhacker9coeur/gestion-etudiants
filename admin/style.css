@@ -1,0 +1,16 @@
+body.dark-mode {
+    background-color: #121212;
+    color: #ffffff;
+  }
+  
+  body.dark-mode .card {
+    background-color: #1e1e1e;
+    color: #ffffff;
+  }
+  
+  body.dark-mode .navbar,
+  body.dark-mode .offcanvas {
+    background-color: #1c1c1c;
+    color: white;
+  }
+  
