@@ -1,7 +1,10 @@
 <?php
 // admin/prof_list.php
 session_start();
-if ($_SESSION['role'] !== 'admin') exit;
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+    header('Location: ../index.php');
+    exit();
+}
 require_once '../config.php';
 $profs = $pdo->query("SELECT id, nom, email FROM utilisateurs WHERE role = 'prof'")->fetchAll();
 ?>
@@ -12,156 +15,87 @@ $profs = $pdo->query("SELECT id, nom, email FROM utilisateurs WHERE role = 'prof
   <meta charset="UTF-8">
   <title>Liste des professeurs</title>
   <link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../font/css/all.min.css" rel="stylesheet">
+  <style>
+    .card-hover:hover { transform: translateY(-4px); transition: 0.2s; }
+  </style>
 </head>
-<body class="bg-light text-dark">
-  <div class="container mt-5">
-    <div class="card shadow">
-      <div class="card-header bg-primary text-white">
-        <h4 class="mb-0">Liste des professeurs</h4>
-      </div>
-      <div class="card-body">
-        <?php if ($profs): ?>
-        <table class="table table-hover align-middle">
-          <thead class="table-light">
-            <tr>
-              <th>Nom</th>
-              <th>Email</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php foreach ($profs as $p): ?>
-              <tr>
-                <td><?= htmlspecialchars($p['nom']) ?></td>
-                <td><?= htmlspecialchars($p['email']) ?></td>
-                <td>
-                  <a href="edit_prof.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-warning">Modifier</a>
-                  <a href="delete_prof.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Confirmer la suppression ?')">Supprimer</a>
-                </td>
-              </tr>
-            <?php endforeach; ?>
-          </tbody>
-        </table>
-        <?php else: ?>
-          <div class="alert alert-info">Aucun professeur trouvé.</div>
-        <?php endif; ?>
+<body class="bg-light">
 
-        <a href="add_prof.php" class="btn btn-success mt-3">Ajouter un professeur</a>
-      </div>
-    </div>
+<!-- NAVBAR -->
+<nav class="navbar navbar-dark bg-dark">
+  <div class="container-fluid">
+    <button class="btn btn-outline-light me-3" data-bs-toggle="offcanvas" data-bs-target="#sidebar">
+      <i class="fas fa-bars"></i>
+    </button>
+    <span class="navbar-brand mb-0 h1">Dashboard Admin</span>
+    <a href="../logout.php" class="btn btn-outline-light">
+      <i class="fas fa-sign-out-alt me-1"></i>Déconnexion
+    </a>
   </div>
-   <!-- FOOTER -->
-   <footer class="bg-dark text-white py-4 mt-5">
-  <div class="container">
-    <div class="row">
-      <!-- À propos -->
-      <div class="col-md-4 mb-3">
-        <h5>🎓 Université</h5>
-        <p>Plateforme de gestion académique pour les étudiants et professeurs.</p>
-      </div>
-    </div>
+</nav>
 
-    <hr class="bg-secondary">
-    <p class="text-center mb-0">&copy; <?= date('Y') ?> Université | Tous droits réservés.</p>
+<!-- OFFCANVAS SIDEBAR -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="sidebar">
+  <div class="offcanvas-header bg-secondary text-white">
+    <h5 class="offcanvas-title">Menu Admin</h5>
+    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"></button>
   </div>
-</footer>
-<!-- TOAST -->
-<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
-  <div id="themeToast" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true">
-    <div class="d-flex">
-      <div class="toast-body d-flex align-items-center" id="themeToastMessage">
-        <i class="fas fa-sun me-2"></i> Thème activé
-      </div>
-      <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Fermer"></button>
+  <div class="offcanvas-body p-0">
+    <div class="list-group list-group-flush">
+      <a href="dashboard.php" class="list-group-item list-group-item-action">
+        <i class="fas fa-home me-2"></i>Accueil
+      </a>
+      <a href="add_prof.php" class="list-group-item list-group-item-action active">
+        <i class="fas fa-user-tie me-2"></i>Ajouter professeur
+      </a>
+      <a href="ajouter_matiere.php" class="list-group-item list-group-item-action">
+        <i class="fas fa-book me-2"></i>Ajouter matière
+      </a>
+      <a href="ajouter_semestre.php" class="list-group-item list-group-item-action">
+        <i class="fas fa-calendar-alt me-2"></i>Ajouter semestre
+      </a>
+      <a href="etudiants.php" class="list-group-item list-group-item-action">
+        <i class="fas fa-user-graduate me-2"></i>Gérer étudiants
+      </a>
     </div>
   </div>
 </div>
 
-<!-- JS Bootstrap et thème -->
-<script src="../bootstrap/js/bootstrap.bundle.min.js"></script>
-<script>
-function applyTheme(theme) {
-    document.body.classList.toggle('bg-dark', theme === 'dark');
-    document.body.classList.toggle('text-white', theme === 'dark');
-    document.body.classList.toggle('bg-light', theme !== 'dark');
-    document.body.classList.toggle('text-dark', theme !== 'dark');
-
-    document.querySelectorAll('.offcanvas, .offcanvas-body, .position-fixed').forEach(el => {
-        el.classList.toggle('bg-dark', theme === 'dark');
-        el.classList.toggle('text-white', theme === 'dark');
-        el.classList.toggle('bg-light', theme !== 'dark');
-        el.classList.toggle('text-dark', theme !== 'dark');
-    });
-
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.classList.toggle('text-white', theme === 'dark');
-        link.classList.toggle('text-dark', theme !== 'dark');
-    });
-
-    document.querySelectorAll('.card').forEach(card => {
-        card.classList.toggle('bg-dark', theme === 'dark');
-        card.classList.toggle('text-white', theme === 'dark');
-        card.classList.toggle('bg-white', theme !== 'dark');
-        card.classList.toggle('text-dark', theme !== 'dark');
-    });
-
-    document.querySelectorAll('h1, h4').forEach(title => {
-        title.classList.toggle('text-light', theme === 'dark');
-        title.classList.toggle('text-dark', theme !== 'dark');
-    });
-
-    const icon = document.getElementById('themeIcon');
-    if (theme === 'dark') {
-        icon.classList.remove('fa-moon');
-        icon.classList.add('fa-sun');
-    } else {
-        icon.classList.remove('fa-sun');
-        icon.classList.add('fa-moon');
-    }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    applyTheme(savedTheme);
-
-    const toastEl = document.getElementById('themeToast');
-    const toastMsg = document.getElementById('themeToastMessage');
-    const toast = new bootstrap.Toast(toastEl);
-
-    document.getElementById('themeToggle').addEventListener('click', () => {
-        const isDark = document.body.classList.contains('bg-dark');
-        const newTheme = isDark ? 'light' : 'dark';
-        localStorage.setItem('theme', newTheme);
-        applyTheme(newTheme);
-
-        if (newTheme === 'dark') {
-            toastMsg.innerHTML = `<i class="fas fa-moon me-2"></i> Thème sombre activé`;
-            toastEl.classList.remove('bg-warning', 'text-dark');
-            toastEl.classList.add('bg-secondary', 'text-white');
-        } else {
-            toastMsg.innerHTML = `<i class="fas fa-sun me-2"></i> Thème clair activé`;
-            toastEl.classList.remove('bg-secondary', 'text-white');
-            toastEl.classList.add('bg-warning', 'text-dark');
-        }
-
-        toast.show();
-    });
-});
-</script>
-<footer class="bg-dark text-white py-4 mt-5">
-  <div class="container">
-    <div class="row">
-      <!-- À propos -->
-      <div class="col-md-4 mb-3">
-        <h5>🎓 Université</h5>
-        <p>Plateforme de gestion académique pour les étudiants et professeurs.</p>
-      </div>
-    </div>
-
-    <hr class="bg-secondary">
-    <p class="text-center mb-0">&copy; <?= date('Y') ?> Université | Tous droits réservés.</p>
+<!-- MAIN CONTENT -->
+<div class="container mt-5">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0"><i class="fas fa-users me-2"></i>Liste des professeurs</h2>
+    <a href="add_prof.php" class="btn btn-success">
+      <i class="fas fa-user-plus me-1"></i>Ajouter
+    </a>
   </div>
-</footer>
+
+  <?php if ($profs): ?>
+  <div class="list-group">
+    <?php foreach ($profs as $p): ?>
+      <div class="list-group-item d-flex justify-content-between align-items-center card-hover">
+        <div>
+          <i class="fas fa-user-tie me-2 text-primary"></i>
+          <strong><?= htmlspecialchars($p['nom']) ?></strong>
+          <span class="text-muted ms-2"><?= htmlspecialchars($p['email']) ?></span>
+        </div>
+        <div>
+          <a href="edit_prof.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-outline-warning me-1">
+            <i class="fas fa-edit"></i>
+          </a>
+          <a href="delete_prof.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Confirmer la suppression ?')">
+            <i class="fas fa-trash-alt"></i>
+          </a>
+        </div>
+      </div>
+    <?php endforeach; ?>
+  </div>
+  <?php else: ?>
+    <div class="alert alert-info mt-3">Aucun professeur trouvé.</div>
+  <?php endif; ?>
+</div>
+
+<script src="../bootstrap/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
